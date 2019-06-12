@@ -1,0 +1,19 @@
+services: docker
+env:
+  global:
+    - TINI_VERSION=0.18.0
+    - TINI_KEY=595E85A6B1B4779EA4DAAEC70B588DFF0527A9B7
+install:
+  - wget https://github.com/krallin/tini/releases/download/v${TINI_VERSION}/tini-static
+  - wget https://github.com/krallin/tini/releases/download/v${TINI_VERSION}/tini-static.asc
+  - gpg --batch --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys ${TINI_KEY}
+  - gpg --batch --verify tini-static.asc tini-static
+  - chmod a+x tini-static
+script:
+  - docker build . --build-arg TINI_VERSION="v${TINI_VERSION}" --build-arg TINI_KEY -t ibotta/tini-static:${TINI_VERSION} -t ibotta/tini-static:latest
+deploy:
+  skip_cleanup: true
+  provider: script
+  script: (echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin) && docker push ibotta/tini-static:${TINI_VERSION} && docker push ibotta/tini-static:latest
+  on:
+    branch: master
