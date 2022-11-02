@@ -1,0 +1,33 @@
+name: build
+
+on:
+  workflow_dispatch:
+  pull_request:
+
+concurrency:
+  group: '${{ github.workflow }} @ ${{ github.event.pull_request.head.label || github.head_ref || github.ref }}'
+  cancel-in-progress: true
+
+env:
+  TINI_VERSION: v0.19.0
+  TINI_KEY: 595E85A6B1B4779EA4DAAEC70B588DFF0527A9B7
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      - name: Build
+        uses: docker/build-push-action@v3
+        with:
+          push: false
+          build-args: |
+            TINI_VERSION=${{ env.TINI_VERSION }}
+            TINI_KEY=${{ env.TINI_KEY }}
